@@ -1,0 +1,21 @@
+name: Rebuild playlist
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash merge.sh
+      - run: |
+          git config user.name "playlist-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add playlist.m3u
+          git diff --cached --quiet || git commit -m "rebuild playlist"
+          git push
