@@ -12,8 +12,18 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: bash merge.sh
-      - run: |
+      - name: Merge playlists
+        run: |
+          echo "#EXTM3U" > playlist.m3u
+          for url in \
+            "https://iptv-org.github.io/iptv/countries/tr.m3u" \
+            "https://streams.uzunmuhalefet.com/lists/tr.m3u" \
+            "https://iptv-org.github.io/iptv/countries/at.m3u"; do
+            curl -sL --max-time 60 "$url" | sed 's/\r$//' | grep -v '^#EXTM3U' >> playlist.m3u || echo "WARN: failed $url"
+          done
+          echo "Channels: $(grep -c '^#EXTINF' playlist.m3u)"
+      - name: Commit
+        run: |
           git config user.name "playlist-bot"
           git config user.email "bot@users.noreply.github.com"
           git add playlist.m3u
